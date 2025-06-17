@@ -171,7 +171,3 @@ solana program show <PROGRAM_ID> -u https://devnet-rpc.solayer.org
 - Callable by any client/wallet
 
 ---
-
-🎉 **Your Hello World program is now live on Solayer Devnet!**
-
-No Anchor. No WebSocket issues. Just clean CLI deployment.
