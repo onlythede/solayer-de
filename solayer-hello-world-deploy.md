@@ -143,6 +143,12 @@ solana program show <PROGRAM_ID> -u https://devnet-rpc.solayer.org
 
 ---
 
+## ✅ Step 9: Test the Program
+
+```bash
+solana transfer --allow-unfunded-recipient --fund-recipient <PROGRAM_ID> 0.001
+```
+
 ## 📁 Key Files Created
 
 | File                           | Purpose                          |
