@@ -1,4 +1,4 @@
-# 🚀 Deploy Smart Contract on Solayer Devnet
+# Deploy Smart Contract on Solayer Devnet
 
 This tutorial walks you through deploying a basic "Hello, Solayer!" smart contract to the **Solayer Devnet**, using **only the Solana CLI**.
 
