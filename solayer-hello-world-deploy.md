@@ -1,6 +1,6 @@
 # 🚀 Deploy Hello World Solana Program on Solayer Devnet (No Anchor)
 
-This tutorial walks you through deploying a basic "Hello, Solayer!" smart contract to the **Solayer Devnet**, using **only the Solana CLI** (no Anchor framework or scripts).
+This tutorial walks you through deploying a basic "Hello, Solayer!" smart contract to the **Solayer Devnet**, using **only the Solana CLI**.
 
 ---
 
