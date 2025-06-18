@@ -26,7 +26,7 @@ This tutorial walks you through deploying a basic "Hello, Solayer!" smart contra
    solana-keygen new -o ./your-wallet-keypair.json
    ```
 
-   > Ensure the wallet is funded on Solayer Devnet. Ask on [Solayer Discord](https://discord.gg/solana) for testnet SOL if needed.
+   > Ensure the wallet is funded on Solayer Devnet. Get test Solana from [Solayer Faucet]([https://discord.gg/solana](https://explorer.solayer.org/faucet)).
 
 ---
 
@@ -149,15 +149,6 @@ solana program show <PROGRAM_ID> -u https://devnet-rpc.solayer.org
 solana transfer --allow-unfunded-recipient --fund-recipient <PROGRAM_ID> 0.001
 ```
 
-## 📁 Key Files Created
-
-| File                           | Purpose                          |
-|--------------------------------|----------------------------------|
-| `hello_program-keypair.json`  | Program ID (keep secure)         |
-| `dist/hello.so`               | Compiled program binary          |
-| `hello/src/lib.rs`            | Source code                      |
-| `hello/Cargo.toml`            | Rust config for BPF compilation  |
-
 ---
 
 ## 🛠️ Troubleshooting
@@ -166,14 +157,5 @@ solana transfer --allow-unfunded-recipient --fund-recipient <PROGRAM_ID> 0.001
 - **Insufficient Funds**: Request SOL from Solayer faucet/Discord.
 - **RPC Errors**: Double-check URL and use `--use-rpc` flag.
 - **Program Show Issues**: Minor formatting bugs — safe to ignore.
-
----
-
-## 🔍 What the Program Does
-
-- Accepts any instruction
-- Logs `"Hello, Solayer!"` to Solana logs
-- Returns success
-- Callable by any client/wallet
 
 ---
