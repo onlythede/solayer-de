@@ -4,7 +4,7 @@ This tutorial walks you through deploying a basic "Hello, Solayer!" smart contra
 
 ---
 
-## ✅ Prerequisites
+## Prerequisites
 
 1. **Install Rust + Cargo**
    ```bash
@@ -30,7 +30,7 @@ This tutorial walks you through deploying a basic "Hello, Solayer!" smart contra
 
 ---
 
-## 🏗️ Step 1: Create Project Structure
+## Step 1: Create Project Structure
 
 ```bash
 mkdir solayer-hello
@@ -40,7 +40,7 @@ cargo new --lib hello
 
 ---
 
-## ⚙️ Step 2: Configure `Cargo.toml`
+## Step 2: Configure `Cargo.toml`
 
 Edit `hello/Cargo.toml`:
 
@@ -59,7 +59,7 @@ crate-type = ["cdylib", "lib"]
 
 ---
 
-## ✍️ Step 3: Write the Hello World Program
+## Step 3: Write the Hello World Program
 
 Replace `hello/src/lib.rs` with:
 
@@ -83,28 +83,28 @@ fn process_instruction(
 
 ---
 
-## 🧱 Step 4: Build the Program
+## Step 4: Build the Program
 
 ```bash
 cargo build-bpf --manifest-path=hello/Cargo.toml --bpf-out-dir=dist
 ```
 
-> ✅ This creates the binary at `dist/hello.so`
+> This creates the binary at `dist/hello.so`
 
 ---
 
-## 🔑 Step 5: Generate Program Keypair
+## Step 5: Generate Program Keypair
 
 ```bash
 solana-keygen new -o hello_program-keypair.json
 solana address -k hello_program-keypair.json
 ```
 
-> ⚠️ Save the **Program ID** (public key) — you’ll need it for deployment.
+> Save the **Program ID** (public key) — you’ll need it for deployment.
 
 ---
 
-## 🌐 Step 6: Configure Solayer Devnet
+## Step 6: Configure Solayer Devnet
 
 ```bash
 solana config set --url https://devnet-rpc.solayer.org
@@ -113,7 +113,7 @@ solana config set -k ./your-wallet-keypair.json
 
 ---
 
-## 🚀 Step 7: Deploy the Program
+## Step 7: Deploy the Program
 
 ```bash
 solana program deploy \
@@ -127,7 +127,7 @@ solana program deploy \
 
 ---
 
-## ✅ Step 8: Verify Deployment
+## Step 8: Verify Deployment
 
 ```bash
 solana program show <PROGRAM_ID> -u https://devnet-rpc.solayer.org
@@ -135,7 +135,7 @@ solana program show <PROGRAM_ID> -u https://devnet-rpc.solayer.org
 
 ---
 
-## 📝 Expected Results
+## Expected Results
 
 - ✅ **Deployment Cost**: ~0.16 SOL
 - ✅ **Program Logs**: “Hello, Solayer!”
@@ -143,7 +143,7 @@ solana program show <PROGRAM_ID> -u https://devnet-rpc.solayer.org
 
 ---
 
-## ✅ Step 9: Test the Program
+## Step 9: Test the Program
 
 ```bash
 solana transfer --allow-unfunded-recipient --fund-recipient <PROGRAM_ID> 0.001
@@ -151,7 +151,7 @@ solana transfer --allow-unfunded-recipient --fund-recipient <PROGRAM_ID> 0.001
 
 ---
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 - **Build Fails**: Ensure correct Rust + Solana CLI versions.
 - **Insufficient Funds**: Request SOL from Solayer faucet/Discord.
