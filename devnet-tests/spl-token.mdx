@@ -1,0 +1,252 @@
+# Technical Report: SPL Token CLI Compatibility Issues with Solayer Devnet
+
+**Date**: 2025-07-03T08:08:23Z  
+**Platform**: MacOS  
+**Shell**: zsh 5.9  
+**Reporter**: Agent Mode Testing  
+**Environment**: `/Users/dethebera/solayer-work/solayer-token-deployment`
+
+## Summary
+
+During comprehensive testing of SPL Token deployment on Solayer devnet, we identified a critical serialization compatibility issue between SPL Token CLI 5.3.0 and the Solayer devnet RPC endpoint. While token and token account creation operations succeed, subsequent operations (minting, balance checking, account listing) fail due to a data type mismatch in the `rentEpoch` field.
+
+## Environment Configuration
+
+### Tool Versions
+```bash
+$ solana --version
+solana-cli 3.0.0 (src:21f770aa; feat:2900245688, client:Agave)
+
+$ spl-token --version
+spl-token-cli 5.3.0
+```
+
+### Network Configuration
+```bash
+$ solana config get
+Config File: /Users/dethebera/.config/solana/cli/config.yml
+RPC URL: https://devnet-rpc.solayer.org 
+WebSocket URL: wss://devnet-rpc.solayer.org/ (computed)
+Keypair Path: /Users/dethebera/test-solayer-wallet.json 
+Commitment: processed
+```
+
+### Network Health Check
+```bash
+$ solana epoch-info
+Block height: 9036426
+Slot: 9036426
+Epoch: 0
+Transaction Count: 4419522531
+Epoch Slot Range: [8640000..9072000)
+Epoch Completed Percent: 91.765%
+```
+
+## Successful Operations
+
+### 1. ✅ Wallet Setup and Funding
+
+### 2. ✅ Token Mint Creation (SUCCESS but only with setting a compute limit)
+```bash
+$ spl-token create-token --with-compute-unit-limit 300000
+Creating token 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk under program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+
+Address:  85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk
+Decimals:  9
+
+Signature: gj1kQidn6u2kiFkekXuHVG1t8wYaKsbdjMdeK47ws37Ak6qe8AHJHkbAmRva74Rs2Pdz8LkfvnXQrH8pFPLyX65
+```
+
+**Transaction Confirmation**:
+```bash
+$ solana confirm gj1kQidn6u2kiFkekXuHVG1t8wYaKsbdjMdeK47ws37Ak6qe8AHJHkbAmRva74Rs2Pdz8LkfvnXQrH8pFPLyX65
+Finalized
+```
+
+### 3. Token Account Creation (SUCCESS)
+```bash
+$ spl-token create-account 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk --with-compute-unit-limit 300000
+Creating account BNiSBtSZMaa79kFccNMSwF85JwYoCtufqmLwLYmDeMeh
+
+Signature: 3CA9J5UpSj78Mt9AMvzzhbyuaFbxSD1scyTaB4rrToLrW3CTk3CHNrRpYP8xLgp9q34iRFgThk5xRTDdPUYcfxvC
+```
+
+## Critical Issues Identified
+
+### Issue 1: Token Minting Failure (Happens even without seeting compute limit manually)
+
+**Command**:
+```bash
+$ spl-token mint 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk 1000000 --with-compute-unit-limit 300000
+```
+
+**Error Output**:
+```
+Error: "Account 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk not found"
+```
+
+**Alternative Attempt with Specific Token Account**:
+```bash
+$ spl-token mint 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk 1000000 BNiSBtSZMaa79kFccNMSwF85JwYoCtufqmLwLYmDeMeh --with-compute-unit-limit 300000
+```
+
+**Error Output**:
+```
+Error: "Account 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk not found"
+```
+
+### Issue 2: Account Information Retrieval Failure
+
+**Command**:
+```bash
+$ spl-token display 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk
+```
+
+**Error Output**:
+```
+Error: "Account 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk not found"
+```
+
+### Issue 3: Serialization Error (Core Issue)
+
+**Command**:
+```bash
+$ solana account 85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk
+```
+
+**Error Output**:
+```
+Error: invalid type: floating point `1.8446744073709552e19`, expected u64
+```
+
+**Command**:
+```bash
+$ spl-token accounts
+```
+
+**Error Output**:
+```
+Error: Error { request: Some(GetTokenAccountsByOwner), kind: SerdeJson(Error("invalid type: floating point `1.8446744073709552e19`, expected u64", line: 0, column: 0)) }
+```
+
+## Root Cause Analysis
+
+### RPC Response Investigation
+
+**Direct RPC Call to Verify Account Existence**:
+```bash
+$ curl -s https://devnet-rpc.solayer.org -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"getAccountInfo","params":["85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk",{"encoding":"base64"}]}'
+```
+
+**Response**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "context": {
+      "slot": 9036511
+    },
+    "value": {
+      "lamports": 1461600,
+      "data": ["AQAAAHD0K/qYzefrQAJaK5OtpYuLXaCb9vkYDYoMdfIwfGMkAAAAAAAAAAAJAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==", "base64"],
+      "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "executable": false,
+      "rentEpoch": 18446744073709552000,
+      "space": 82
+    }
+  }
+}
+```
+
+### Problem Identification
+
+**Issue**: The `rentEpoch` field is returned as `18446744073709552000` (floating-point notation for a very large number) instead of a proper u64 integer.
+
+**Expected**: The SPL Token CLI expects `rentEpoch` to be serialized as a u64 integer, but Solayer's RPC endpoint returns it as a floating-point number in scientific notation.
+
+**Impact**: This causes deserialization failures in the Rust serde library used by the SPL Token CLI, preventing any operation that requires account information parsing.
+
+
+## Attempted Workarounds
+
+### 1. Different Commitment Levels
+```bash
+# Tried finalized commitment
+$ solana config set --commitment finalized
+
+# Tried confirmed commitment  
+$ solana config set --commitment confirmed
+
+# Tried processed commitment
+$ solana config set --commitment processed
+```
+**Result**: No improvement in serialization error.
+
+### 2. Extended Wait Times
+```bash
+$ sleep 10
+# Then retry operations
+```
+**Result**: No improvement - the issue is not timing-related.
+
+### 3. Multiple Token Creation Attempts
+Created multiple tokens to verify consistency:
+- `3tMdoEuvRdyzBZ8ZZD3EP7iPCiaY7EErchoENVH3nip9` 
+- `J7c1zULeFgrNvHFNwixR8UzKqZ8kzWyKdzZG2HEefirv`
+- `85yUrN4PCeDM26XV9Hnsa72dzjsW4sgtbjVN3YtT6GDk`
+
+**Result**: All exhibited the same behavior - creation succeeds, subsequent operations fail.
+
+## Technical Details
+
+### Affected SPL Token CLI Commands
+- `spl-token mint` - Cannot mint tokens to accounts
+- `spl-token balance` - Cannot check token balances  
+- `spl-token accounts` - Cannot list token accounts
+- `spl-token display` - Cannot display token information
+- `spl-token supply` - Cannot check token supply
+
+### Working SPL Token CLI Commands
+- `spl-token create-token` - Successfully creates token mints
+- `spl-token create-account` - Successfully creates token accounts
+
+### Working Solana CLI Commands
+- `solana balance` - Works correctly
+- `solana config` - Works correctly
+- `solana epoch-info` - Works correctly
+- `solana confirm` - Works correctly
+- `solana airdrop` - Works correctly
+
+## Data Type Analysis
+
+**Current Solayer Response**:
+```json
+"rentEpoch": 18446744073709552000
+```
+
+**Expected Format**:
+```json  
+"rentEpoch": 18446744073709551615
+```
+
+**Value Analysis**:
+- The number `18446744073709552000` appears to be `u64::MAX` (18446744073709551615) with some floating-point precision loss
+- This suggests the issue occurs during JSON serialization/number handling in the RPC layer
+
+
+## Reproduction Steps
+
+1. Configure Solana CLI for Solayer devnet
+2. Create and fund a wallet
+3. Create a token mint (succeeds)
+4. Create a token account (succeeds) 
+5. Attempt to mint tokens (fails with serialization error)
+6. Attempt to check balances (fails with serialization error)
+
+## Additional Notes
+
+- All transactions that succeed are properly finalized on-chain
+- The issue appears to be purely in the RPC response parsing layer
+- Direct blockchain state queries confirm accounts exist and are valid
+- The compute unit limit flags work correctly and are necessary for transaction success
